@@ -1,0 +1,52 @@
+variables:
+    projectname: shoe-ShoppingCart
+    version: 0.0.1-SNAPSHOT
+    projectuser: shoeshop
+    projectpath: /datas/shoeshop/
+stages:
+    - build
+    - deploy
+    - showlog
+
+build:
+    stage: build
+    variables:
+        GIT_STRATEGY: clone
+    script:
+        - mvn install -DskipTests=true
+    tags:
+        - gitlab-server
+    only:
+        - tags
+
+deploy:
+    stage: deploy
+    variables:
+        GIT_STRATEGY: none
+
+  
+    script:
+        - sudo cp target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar /datas/shoeshop/
+        - sudo chown -R shoeshop. /datas/shoeshop/
+
+        - sudo su shoeshop -c "cd /datas/shoeshop/;nohup java -jar shoe-ShoppingCart-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 &"
+
+    tags:
+        - gitlab-server
+    only:
+        - tags
+
+showlog:
+    stage: showlog
+    variables:
+        GIT_STRATEGY: none
+  
+    script:
+        
+        - sudo su shoeshop -c "cd /datas/shoeshop/; tail -n 100000 nohup.out"
+
+    tags:
+        - gitlab-server
+    only:
+        - tags
+    
